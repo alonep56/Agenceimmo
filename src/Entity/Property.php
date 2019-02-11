@@ -8,10 +8,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Cocur\Slugify\Slugify;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\PropertyRepository")
  * @UniqueEntity("title")
+ * @Vich\Uploadable
  */
 
 class Property
@@ -30,6 +33,20 @@ class Property
      * @ORM\Column(type="integer")
      */
     private $id;
+
+    /**
+     * @var string|null
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $filename;
+
+
+    /**
+    * @var File|null
+    * @Assert\Image(mimeTypes="image/jpeg")
+    * @Vich\UploadableField(mapping="property_image", fileNameProperty="filename")
+    */
+    private $imageFile;
 
     /**
      * @Assert\Length(min=5, max=255)
@@ -95,6 +112,7 @@ class Property
     private $sold = false;
 
     /**
+     * @var DateTime|null
      * @ORM\Column(type="datetime")
      */
     private $created_at;
@@ -108,6 +126,7 @@ class Property
     {
         $this->created_at = new \DateTime();
         $this->options = new ArrayCollection();
+        // $this->updated_at = new \DateTime();
 
     }
 
@@ -313,4 +332,59 @@ class Property
 
         return $this;
     }
+
+
+    /**
+     * Get the value of Filename
+     *
+     * @return string|null
+     */
+    public function getFilename()
+    {
+        return $this->filename;
+    }
+
+    /**
+     * Set the value of Filename
+     *
+     * @param string|null filename
+     *
+     * @return self
+     */
+    public function setFilename(?string $filename)
+    {
+        $this->filename = $filename;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of Image File
+     *
+     * @return File|null
+     */
+    public function getImageFile()
+    {
+        return $this->imageFile;
+    }
+
+    /**
+     * Set the value of Image File
+     *
+     * @param File|null imageFile
+     *
+     * @return self
+     */
+    public function setImageFile(?File $imageFile): Property
+    {
+        $this->imageFile = $imageFile;
+        if ($this->imageFile instanceof UploadFile) {
+            // if 'updatedAt' is not defined in your entity, use another property
+            $this->updated_at = new \DateTime('now');
+        }
+
+        return $this;
+    }
+
+
 }
