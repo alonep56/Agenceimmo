@@ -3,8 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Property;
+use App\Entity\Contact;
 use App\Form\OptionType;
+use App\Form\ContactType;
 use App\Entity\PropertySearch;
+use App\Notification\ContactNotification;
 use App\Form\PropertySearchType;
 use App\Repository\PropertyRepository;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -78,8 +81,10 @@ class PropertyController extends AbstractController
   */
 
 
-  public function show(Property $property, string $slug): Response
+  public function show(Property $property, string $slug, Request $request, ContactNotification $notification): Response
   {
+
+
 
     if ($property->getSlug() === $slug) {
       $this->redirectToRoute('property.show', [
@@ -88,9 +93,24 @@ class PropertyController extends AbstractController
       ], 301);
     }
 
+    $contact = new Contact();
+    $contact->setProperty($property);
+    $form = $this->createForm(ContactType::class, $contact);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+      $notification->notify($contact);
+      $this->addFlash('success', 'Votre email a bien été envoyé');
+      return $this->redirectToRoute('property.show', [
+        'id' => $property->getId(),
+        'slug' => $property->getSlug()
+      ]);
+    }
+
     return $this->render('property/show.html.twig', [
       'current_menu' => 'properties',
-      'property' => $property
+      'property' => $property,
+      'form' => $form->createView()
     ]);
   }
 
