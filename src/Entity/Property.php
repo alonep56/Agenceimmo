@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+
+use App\Form\PropertyType;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -14,7 +16,6 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\PropertyRepository")
  * @UniqueEntity("title")
- * @Vich\Uploadable
  */
 
 class Property
@@ -34,19 +35,7 @@ class Property
      */
     private $id;
 
-    /**
-     * @var string|null
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $filename;
 
-
-    /**
-    * @var File|null
-    * @Assert\Image(mimeTypes="image/jpeg")
-    * @Vich\UploadableField(mapping="property_image", fileNameProperty="filename")
-    */
-    private $imageFile;
 
     /**
      * @Assert\Length(min=5, max=255)
@@ -122,10 +111,23 @@ class Property
      */
     private $options;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Picture", mappedBy="property", orphanRemoval=true, cascade={"persist"})
+     */
+    private $pictures;
+
+    /**
+     * @Assert\All({
+     * @Assert\Image(mimeTypes="image/jpeg")
+     * })
+     */
+    private $pictureFiles;
+
     public function __construct()
     {
         $this->created_at = new \DateTime();
         $this->options = new ArrayCollection();
+        $this->pictures = new ArrayCollection();
         // $this->updated_at = new \DateTime();
 
     }
@@ -334,57 +336,78 @@ class Property
     }
 
 
+
+
+
+
     /**
-     * Get the value of Filename
-     *
-     * @return string|null
+     * @return Collection|picture[]
      */
-    public function getFilename()
+    public function getPictures(): Collection
     {
-        return $this->filename;
+        return $this->pictures;
     }
 
-    /**
-     * Set the value of Filename
-     *
-     * @param string|null filename
-     *
-     * @return self
-     */
-    public function setFilename(?string $filename)
+    public function getPicture(): ?Picture
     {
-        $this->filename = $filename;
-
-        return $this;
+            if ($this->pictures->isEmpty()) {
+                return null;
+            }
+            return $this->pictures->first();
     }
 
-    /**
-     * Get the value of Image File
-     *
-     * @return File|null
-     */
-    public function getImageFile()
+    public function addPicture(picture $picture): self
     {
-        return $this->imageFile;
-    }
-
-    /**
-     * Set the value of Image File
-     *
-     * @param File|null imageFile
-     *
-     * @return self
-     */
-    public function setImageFile(?File $imageFile): Property
-    {
-        $this->imageFile = $imageFile;
-        if ($this->imageFile instanceof UploadFile) {
-            // if 'updatedAt' is not defined in your entity, use another property
-            $this->updated_at = new \DateTime('now');
+        if (!$this->pictures->contains($picture)) {
+            $this->pictures[] = $picture;
+            $picture->setProperty($this);
         }
 
         return $this;
     }
 
+    public function removePicture(picture $picture): self
+    {
+        if ($this->pictures->contains($picture)) {
+            $this->pictures->removeElement($picture);
+            // set the owning side to null (unless already changed)
+            if ($picture->getProperty() === $this) {
+                $picture->setProperty(null);
+            }
+        }
+
+        return $this;
+    }
+
+
+
+    /**
+     * Get the value of Picture Files
+     *
+     * @return mixed
+     */
+    public function getPictureFiles()
+    {
+        return $this->pictureFiles;
+    }
+
+    /**
+     * Set the value of Picture Files
+     *
+     * @param mixed pictureFiles
+     *
+     * @return Property
+     */
+    public function setPictureFiles($pictureFiles): self
+    {
+        foreach($pictureFiles as $pictureFile) {
+            $picture = new Picture();
+            $picture->setImageFile($pictureFile);
+            $this->addPicture($picture);
+        }
+        $this->pictureFiles = $pictureFiles;
+
+        return $this;
+    }
 
 }

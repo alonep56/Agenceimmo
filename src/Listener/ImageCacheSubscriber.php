@@ -8,6 +8,7 @@ use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Vich\UploaderBundle\Templating\Helper\UploaderHelper;
+use App\Entity\Picture;
 
 class ImageCacheSubscriber implements EventSubscriber
 {
@@ -37,10 +38,11 @@ class ImageCacheSubscriber implements EventSubscriber
 
   public function preRemove(LifecycleEventArgs $args) {
 
-    if (!$entity instanceof Property) {
+    $entity = $args->getEntity();
+    if (!$entity instanceof Picture) {
       return;
     }
-    $this->cachemanager->remove($this->uploaderHelper->asset($entity, 'imageFile'));
+    $this->cacheManager->remove($this->uploaderHelper->asset($entity, 'imageFile'));
 
   }
   public function preUpdate(PreUpdateEventArgs $args){
@@ -48,11 +50,11 @@ class ImageCacheSubscriber implements EventSubscriber
     $entity = $args->getEntity();
 
 
-    if (!$entity instanceof Property) {
+    if (!$entity instanceof Picture) {
       return;
     }
     if ($entity->getImageFile() instanceof UploadedFile) {
-      $this->cachemanager->remove($this->uploaderHelper->asset($entity, 'imageFile'));
+      $this->cacheManager->remove($this->uploaderHelper->asset($entity, 'imageFile'));
     }
   }
 

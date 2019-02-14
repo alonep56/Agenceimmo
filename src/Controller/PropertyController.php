@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Property;
 use App\Entity\Contact;
 use App\Form\OptionType;
+use App\Entity\Picture;
 use App\Form\ContactType;
 use App\Entity\PropertySearch;
 use App\Notification\ContactNotification;

@@ -73,9 +73,9 @@ class AdminPropertyController extends AbstractController {
       $form->handleRequest($request);
 
       if ($form->isSubmitted() && $form->isValid()) {
-          if ($property->getImageFile() instanceof UploadedFile) {
-            $cacheManager->remove($helper->asset($property, 'imageFile'));
-          }
+          // if ($property->getImageFile() instanceof UploadedFile) {
+          //   $cacheManager->remove($helper->asset($property, 'imageFile'));
+          // }
         $this->em->flush();
         $this->addFlash('success', 'Bien modifié avec succès');
         return $this->redirectToRoute('admin.property.index');
